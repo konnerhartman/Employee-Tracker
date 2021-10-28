@@ -17,5 +17,10 @@
   "bugs": {
     "url": "https://github.com/konnerhartman/Employee-Tracker/issues"
   },
-  "homepage": "https://github.com/konnerhartman/Employee-Tracker#readme"
+  "homepage": "https://github.com/konnerhartman/Employee-Tracker#readme",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "inquirer": "^8.2.0",
+    "mysql2": "^2.3.2"
+  }
 }
