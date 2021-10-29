@@ -172,38 +172,27 @@ addRole = () => {
             }
         },
         {
-            name: 'dept',
             type: 'list',
-            choices: function () {
-                let choiceArray = results[1].map(choice => choice.department.name);
-                return choiceArray;
-            },
-            message: 'Select the Department for this new Title:'
+            name: 'roleDep',
+            message: 'Select the department this role belongs to.',
+            choices: ''
         }
-    ]).then((answer) => {
+    ])
+    .then(answer => {
         connection.query(
-            `INSERT INTO roles(title, salary, department_id) 
-            VALUES
-            ("${answer.newTitle}", "${answer.newSalary}", 
-            (SELECT id FROM departments WHERE department_name = "${answer.dept}"));`
+            `INSERT INTO role (title, salary, department_id)
+            VALUE (?,?,?);`,
+            {
+                title: answer.roleTitle,
+                salary: answer.roleSalary,
+                department_id: answer.roleDep
+            },
+            (err, res) => {
+                if (err) throw err
+                console.table(res)
+                startPrompt()
+            }
         )
-
-
-    // ])
-    // .then(answer => {
-    //     connection.query(
-    //         `INSERT INTO role (title, salary)
-    //         VALUE (?,?,?);`,
-    //         {
-    //             title: answer.roleTitle,
-    //             salary: answer.roleSalary,
-    //         },
-    //         (err, res) => {
-    //             if (err) throw err
-    //             console.table(res)
-    //             startPrompt()
-    //         }
-    //     )
     })
 };
 
@@ -220,7 +209,9 @@ addEmployee = () => {
                     console.log('Please enter the first name of employee.');
                     return false;
                 }
-            },
+            }
+        },
+        {
             type: 'input',
             name: 'lastName',
             message: 'Add the last name of employee.',
@@ -232,15 +223,29 @@ addEmployee = () => {
                     return false;
                 }
             }
+        },
+        {
+                type: 'list',
+                name: 'managerID',
+                message: 'Select the manager of this employee.',
+                choices: ''
+        },
+        {
+                type: 'list',
+                name: 'roleID',
+                message: 'Select the job title of this employee.',
+                choices: ''
         }
     ])
     .then(answer => {
         connection.query(
-            `INSERT INTO role (title, salary)
-            VALUE (?);`,
+            `INSERT INTO employee (first_name, last_name, manager_id, role_id)
+            VALUE (?, ?, ?, ?);`,
             {
-                title: answer.roleTitle,
-                salary: answer.roleSalary,
+                first_name: answer.firstName,
+                last_name: answer.lastName,
+                manager_id: answer.managerID,
+                role_id: answer.roleID
             },
             (err, res) => {
                 if (err) throw err
