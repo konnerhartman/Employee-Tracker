@@ -75,11 +75,12 @@ const startPrompt = () => {
 
 viewAllDepartments = () => {
     connection.query(
-        `SELECT employee.first_name AS FIRST, employee.last_name AS LAST, department.name AS DEPARTMENT 
-        FROM employee 
-        JOIN role ON employee.role_id = role.id 
-        JOIN department ON role.department_id = department.id 
-        ORDER BY employee.id;`,
+        `SELECT * FROM department;`,
+        // `SELECT employee.first_name AS FIRST, employee.last_name AS LAST, department.name AS DEPARTMENT 
+        // FROM employee 
+        // JOIN role ON employee.role_id = role.id 
+        // JOIN department ON role.department_id = department.id 
+        // ORDER BY employee.id;`,
         (err, res) => {
             if (err) throw err
             console.table(res)
@@ -89,9 +90,10 @@ viewAllDepartments = () => {
 
 viewAllRoles = () => {
     connection.query(
-        `SELECT employee.first_name AS FIRST, employee.last_name AS LAST, role.title AS TITLE 
-        FROM employee
-        JOIN role ON employee.role_id = role.id;`,
+        `SELECT * FROM role;`,
+        // `SELECT employee.first_name AS FIRST, employee.last_name AS LAST, role.title AS TITLE 
+        // FROM employee
+        // JOIN role ON employee.role_id = role.id;`,
         (err, res) => {
             if (err) throw err
             console.table(res)
@@ -102,11 +104,12 @@ viewAllRoles = () => {
 
 viewAllEmployees = () => {
     connection.query(
-        `SELECT employee.first_name AS FIRST,employee.last_name AS LAST, role.title AS TITLE, role.salary AS SALARY, department.name AS DEPARTMENT, CONCAT(e.first_name, " ", e.last_name) AS MANAGER 
-        FROM employee 
-        INNER JOIN role on role.id = employee.role_id 
-        INNER JOIN department on department.id = role.department_id 
-        LEFT JOIN employee e on employee.manager_id = e.id;`,
+        `SELECT * FROM employee;`,
+        // `SELECT employee.first_name AS FIRST,employee.last_name AS LAST, role.title AS TITLE, role.salary AS SALARY, department.name AS DEPARTMENT, CONCAT(e.first_name, " ", e.last_name) AS MANAGER 
+        // FROM employee 
+        // INNER JOIN role on role.id = employee.role_id 
+        // INNER JOIN department on department.id = role.department_id 
+        // LEFT JOIN employee e on employee.manager_id = e.id;`,
         (err, res) => {
             if (err) throw err
             console.table(res)
@@ -144,116 +147,156 @@ addDepartment = () => {
 };
 
 addRole = () => {
-    inquirer.prompt([
-        {
-            type: 'input',
-            name: 'roleTitle',
-            message: 'Add job title.',
-            validate: roleTitle => {
-                if (roleTitle) {
-                    return true;
-                } else {
-                    console.log('Please enter the job title.');
-                    return false;
-                }
-            },
-        },
-        {
-            type: 'input',
-            name: 'roleSalary',
-            message: 'Add the salary for this title.',
-            validate: roleSalary => {
-                if (roleSalary) {
-                    return true;
-                } else {
-                    console.log('Please enter the salary.');
-                    return false;
-                }
+    connection.query('SELECT * FROM department', (err, data) => {
+        if (err) throw err;
+        let depArray = data.map(department => {
+            return {
+                name: department.name,
+                value: department.id
             }
-        },
-        {
-            type: 'list',
-            name: 'roleDep',
-            message: 'Select the department this role belongs to.',
-            choices: ''
-        }
-    ])
-    .then(answer => {
-        connection.query(
-            `INSERT INTO role (title, salary, department_id)
-            VALUE (?,?,?);`,
+        });
+        inquirer.prompt([
             {
-                title: answer.roleTitle,
-                salary: answer.roleSalary,
-                department_id: answer.roleDep
+                type: 'input',
+                name: 'roleTitle',
+                message: 'Add job title.',
+                validate: roleTitle => {
+                    if (roleTitle) {
+                        return true;
+                    } else {
+                        console.log('Please enter the job title.');
+                        return false;
+                    }
+                },
             },
-            (err, res) => {
-                if (err) throw err
-                console.table(res)
-                startPrompt()
+            {
+                type: 'input',
+                name: 'roleSalary',
+                message: 'Add the salary for this title.',
+                validate: roleSalary => {
+                    if (roleSalary) {
+                        return true;
+                    } else {
+                        console.log('Please enter the salary.');
+                        return false;
+                    }
+                }
+            },
+            {
+                type: 'list',
+                name: 'roleDep',
+                message: 'Select the department this role belongs to.',
+                choices: depArray
+                
             }
-        )
-    })
+        ])
+        .then(answer => {
+            connection.query(
+                `INSERT INTO role (title, salary, department_id)
+                VALUE (?);`, 
+                {
+                    title: answer.roleTitle,
+                    salary: answer.roleSalary,
+                    department_id: answer.roleDep
+                },
+                (err, res) => {
+                    if (err) throw err
+                    console.table(res)
+                    console.log({
+                        title: answer.roleTitle,
+                        salary: answer.roleSalary,
+                        department_id: answer.roleDep
+                    });
+                    startPrompt();
+                }
+            )
+        })
+    }); 
 };
 
 addEmployee = () => {
-    inquirer.prompt([
-        {
-            type: 'input',
-            name: 'firstName',
-            message: 'Add the first name of employee.',
-            validate: firstName => {
-                if (firstName) {
-                    return true;
-                } else {
-                    console.log('Please enter the first name of employee.');
-                    return false;
+    connection.query('SELECT id, title FROM role', (err, data) => {
+        if (err) throw err;
+        let roleArray = data.map(role => {
+            return {
+                name: role.title,
+                value: role.id
+            }
+        });
+
+        connection.query('SELECT id, first_name, last_name FROM employee', (err, data) => {
+            if (err) throw err;
+            let manArray = data.map(employee => {
+                return {
+                    name: employee.first_name + ' ' + employee.last_name,
+                    value: employee.id
                 }
-            }
-        },
-        {
-            type: 'input',
-            name: 'lastName',
-            message: 'Add the last name of employee.',
-            validate: lastName => {
-                if (lastName) {
-                    return true;
-                } else {
-                    console.log('Please enter the last name of employee.');
-                    return false;
+            });
+
+            manArray.push({
+                value: null,
+                name: 'None'
+            })
+        
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'firstName',
+                    message: 'Add the first name of employee.',
+                    validate: firstName => {
+                        if (firstName) {
+                            return true;
+                        } else {
+                            console.log('Please enter the first name of employee.');
+                            return false;
+                        }
+                    }
+                },
+                {
+                    type: 'input',
+                    name: 'lastName',
+                    message: 'Add the last name of employee.',
+                    validate: lastName => {
+                        if (lastName) {
+                            return true;
+                        } else {
+                            console.log('Please enter the last name of employee.');
+                            return false;
+                        }
+                    }
+                },
+                {
+                        type: 'list',
+                        name: 'roleID',
+                        message: 'Select the job title of this employee.',
+                        choices: roleArray
+                },
+                {
+                    type: 'list',
+                    name: 'managerID',
+                    message: 'Select the manager of this employee.',
+                    choices: manArray
                 }
-            }
-        },
-        {
-                type: 'list',
-                name: 'managerID',
-                message: 'Select the manager of this employee.',
-                choices: ''
-        },
-        {
-                type: 'list',
-                name: 'roleID',
-                message: 'Select the job title of this employee.',
-                choices: ''
-        }
-    ])
-    .then(answer => {
-        connection.query(
-            `INSERT INTO employee (first_name, last_name, manager_id, role_id)
-            VALUE (?, ?, ?, ?);`,
-            {
-                first_name: answer.firstName,
-                last_name: answer.lastName,
-                manager_id: answer.managerID,
-                role_id: answer.roleID
-            },
-            (err, res) => {
-                if (err) throw err
-                console.table(res)
-                startPrompt()
-            }
-        )
-    })
+            ])
+            .then(answer => {
+                connection.query(
+                    `INSERT INTO employee (first_name, last_name, manager_id, role_id)
+                    VALUE (?);`,
+                    {
+                        first_name: answer.firstName,
+                        last_name: answer.lastName,
+                        manager_id: answer.managerID,
+                        role_id: answer.roleID
+                    },
+                    (err, res) => {
+                        if (err) throw err
+                        console.table(res)
+                        startPrompt()
+                    }
+                )
+            })
+        });
+    });
 };
 
 updateRole = () => {
@@ -267,5 +310,6 @@ updateRole = () => {
 };
 
 exitApp = () => {
+    console.log('Goodbye!');
     connection.end();
 };
