@@ -232,11 +232,6 @@ addEmployee = () => {
                     value: employee.id
                 }
             });
-            console.log(manArray);
-            // manArray.push({
-            //     value: null,
-            //     name: 'None'
-            // })
         
             inquirer.prompt([
                 {
@@ -279,7 +274,7 @@ addEmployee = () => {
                 }
             ])
             .then(answer => {
-                let query = connection.query(
+                connection.query(
                     `INSERT INTO employee 
                     SET ?;`,
                     {
@@ -293,21 +288,63 @@ addEmployee = () => {
                         console.table(res)
                         startPrompt()
                     }
-                ); console.log("testing connection", query.sql);
+                ); 
             })
         });
     });
 };
 
 updateRole = () => {
-    connection.query(
-        ``,
-        (err, res) => {
-            if (err) throw err
-            console.table(res)
-            startPrompt()
+
+    connection.query('SELECT id, first_name, last_name FROM employee', (err, data) => {
+        if (err) throw err;
+        let empArray = data.map(employee => {
+            return {
+                name: employee.first_name + ' ' + employee.last_name,
+                value: employee.id
+            }
+        });
+        connection.query('SELECT id, title FROM role', (err, data) => {
+            if (err) throw err;
+            let roleArray = data.map(role => {
+                return {
+                    name: role.title,
+                    value: role.id
+                }
+            });
+            inquirer.prompt ([
+                {
+                    type: 'list',
+                    name: 'nameID',
+                    message: 'Select an employee to update.',
+                    choices: empArray
+                },
+                {
+                    type: 'list',
+                    name: 'roleID',
+                    message: 'Select the new role.',
+                    choices: roleArray
+                }
+            ])
+            .then(answer => {
+                connection.query(
+                    `UPDATE employee SET ?
+                    WHERE id IS ?;`,
+                    {
+                        last_name: answer.nameID,
+                        role_id: answer.roleID
+                    },
+                    (err, res) => {
+                        if (err) throw err
+                        console.table(res)
+                        startPrompt()
+                    }
+                ); 
+            })
         })
-};
+    }
+)};
+
 
 exitApp = () => {
     console.log('Goodbye!');
