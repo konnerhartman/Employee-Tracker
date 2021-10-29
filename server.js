@@ -224,7 +224,7 @@ addEmployee = () => {
             }
         });
 
-        connection.query('SELECT id, first_name, last_name FROM employee', (err, data) => {
+        connection.query('SELECT id, first_name, last_name FROM employee WHERE manager_id IS null', (err, data) => {
             if (err) throw err;
             let manArray = data.map(employee => {
                 return {
@@ -232,11 +232,11 @@ addEmployee = () => {
                     value: employee.id
                 }
             });
-
-            manArray.push({
-                value: null,
-                name: 'None'
-            })
+            console.log(manArray);
+            // manArray.push({
+            //     value: null,
+            //     name: 'None'
+            // })
         
             inquirer.prompt([
                 {
@@ -279,9 +279,9 @@ addEmployee = () => {
                 }
             ])
             .then(answer => {
-                connection.query(
-                    `INSERT INTO employee (first_name, last_name, manager_id, role_id)
-                    VALUE (?);`,
+                let query = connection.query(
+                    `INSERT INTO employee 
+                    SET ?;`,
                     {
                         first_name: answer.firstName,
                         last_name: answer.lastName,
@@ -293,7 +293,7 @@ addEmployee = () => {
                         console.table(res)
                         startPrompt()
                     }
-                )
+                ); console.log("testing connection", query.sql);
             })
         });
     });
