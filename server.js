@@ -75,8 +75,10 @@ const startPrompt = () => {
 
 viewAllDepartments = () => {
     connection.query(
-        `SELECT employee.first_name AS FIRST, employee.last_name AS LAST, department.name AS DEPARTMENT FROM employee 
-        JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id 
+        `SELECT employee.first_name AS FIRST, employee.last_name AS LAST, department.name AS DEPARTMENT 
+        FROM employee 
+        JOIN role ON employee.role_id = role.id 
+        JOIN department ON role.department_id = department.id 
         ORDER BY employee.id;`,
         (err, res) => {
             if (err) throw err
@@ -87,7 +89,8 @@ viewAllDepartments = () => {
 
 viewAllRoles = () => {
     connection.query(
-        `SELECT employee.first_name AS FIRST, employee.last_name AS LAST, role.title AS TITLE FROM employee
+        `SELECT employee.first_name AS FIRST, employee.last_name AS LAST, role.title AS TITLE 
+        FROM employee
         JOIN role ON employee.role_id = role.id;`,
         (err, res) => {
             if (err) throw err
@@ -99,7 +102,8 @@ viewAllRoles = () => {
 
 viewAllEmployees = () => {
     connection.query(
-        `SELECT employee.first_name AS FIRST, employee.last_name AS LAST, role.title AS TITLE, role.salary AS SALARY, department.name AS DEPARTMENT, CONCAT(e.first_name, " ", e.last_name) AS MANAGER FROM employee 
+        `SELECT employee.first_name AS FIRST,employee.last_name AS LAST, role.title AS TITLE, role.salary AS SALARY, department.name AS DEPARTMENT, CONCAT(e.first_name, " ", e.last_name) AS MANAGER 
+        FROM employee 
         INNER JOIN role on role.id = employee.role_id 
         INNER JOIN department on department.id = role.department_id 
         LEFT JOIN employee e on employee.manager_id = e.id;`,
@@ -112,35 +116,149 @@ viewAllEmployees = () => {
 };
 
 addDepartment = () => {
-    connection.query('', (err, res) => {
-        if (err) throw err
-        console.table(res)
-        startPrompt()
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'addDepartment',
+            message: 'Add department title.',
+            validate: addDepartment => {
+                if (addDepartment) {
+                    return true;
+                } else {
+                    console.log('Please enter the department title.');
+                    return false;
+                }
+        }
+    }])
+    .then(answer => {
+        connection.query(
+            `INSERT INTO department (name)
+            VALUE (?);`, (answer.addDepartment),
+            (err, res) => {
+                if (err) throw err
+                console.table(res)
+                startPrompt()
+            }
+        )
     })
 };
 
 addRole = () => {
-    connection.query('', (err, res) => {
-        if (err) throw err
-        console.table(res)
-        startPrompt()
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'roleTitle',
+            message: 'Add job title.',
+            validate: roleTitle => {
+                if (roleTitle) {
+                    return true;
+                } else {
+                    console.log('Please enter the job title.');
+                    return false;
+                }
+            },
+        },
+        {
+            type: 'input',
+            name: 'roleSalary',
+            message: 'Add the salary for this title.',
+            validate: roleSalary => {
+                if (roleSalary) {
+                    return true;
+                } else {
+                    console.log('Please enter the salary.');
+                    return false;
+                }
+            }
+        },
+        {
+            name: 'dept',
+            type: 'list',
+            choices: function () {
+                let choiceArray = results[1].map(choice => choice.department.name);
+                return choiceArray;
+            },
+            message: 'Select the Department for this new Title:'
+        }
+    ]).then((answer) => {
+        connection.query(
+            `INSERT INTO roles(title, salary, department_id) 
+            VALUES
+            ("${answer.newTitle}", "${answer.newSalary}", 
+            (SELECT id FROM departments WHERE department_name = "${answer.dept}"));`
+        )
+
+
+    // ])
+    // .then(answer => {
+    //     connection.query(
+    //         `INSERT INTO role (title, salary)
+    //         VALUE (?,?,?);`,
+    //         {
+    //             title: answer.roleTitle,
+    //             salary: answer.roleSalary,
+    //         },
+    //         (err, res) => {
+    //             if (err) throw err
+    //             console.table(res)
+    //             startPrompt()
+    //         }
+    //     )
     })
 };
 
 addEmployee = () => {
-    connection.query('', (err, res) => {
-        if (err) throw err
-        console.table(res)
-        startPrompt()
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'firstName',
+            message: 'Add the first name of employee.',
+            validate: firstName => {
+                if (firstName) {
+                    return true;
+                } else {
+                    console.log('Please enter the first name of employee.');
+                    return false;
+                }
+            },
+            type: 'input',
+            name: 'lastName',
+            message: 'Add the last name of employee.',
+            validate: lastName => {
+                if (lastName) {
+                    return true;
+                } else {
+                    console.log('Please enter the last name of employee.');
+                    return false;
+                }
+            }
+        }
+    ])
+    .then(answer => {
+        connection.query(
+            `INSERT INTO role (title, salary)
+            VALUE (?);`,
+            {
+                title: answer.roleTitle,
+                salary: answer.roleSalary,
+            },
+            (err, res) => {
+                if (err) throw err
+                console.table(res)
+                startPrompt()
+            }
+        )
     })
 };
 
 updateRole = () => {
-    connection.query('', (err, res) => {
-        if (err) throw err
-        console.table(res)
-        startPrompt()
-    })
+    connection.query(
+        ``,
+        (err, res) => {
+            if (err) throw err
+            console.table(res)
+            startPrompt()
+        })
 };
 
 exitApp = () => {
