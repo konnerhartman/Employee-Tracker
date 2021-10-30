@@ -75,12 +75,12 @@ const startPrompt = () => {
 
 viewAllDepartments = () => {
     connection.query(
-        `SELECT * FROM department;`,
-        // `SELECT employee.first_name AS FIRST, employee.last_name AS LAST, department.name AS DEPARTMENT 
-        // FROM employee 
-        // JOIN role ON employee.role_id = role.id 
-        // JOIN department ON role.department_id = department.id 
-        // ORDER BY employee.id;`,
+        // `SELECT * FROM department;`,
+        `SELECT employee.first_name AS FIRST, employee.last_name AS LAST, department.name AS DEPARTMENT 
+        FROM employee 
+        JOIN role ON employee.role_id = role.id 
+        JOIN department ON role.department_id = department.id 
+        ORDER BY employee.id;`,
         (err, res) => {
             if (err) throw err
             console.table(res)
@@ -90,10 +90,10 @@ viewAllDepartments = () => {
 
 viewAllRoles = () => {
     connection.query(
-        `SELECT * FROM role;`,
-        // `SELECT employee.first_name AS FIRST, employee.last_name AS LAST, role.title AS TITLE 
-        // FROM employee
-        // JOIN role ON employee.role_id = role.id;`,
+        // `SELECT * FROM role;`,
+        `SELECT employee.first_name AS FIRST, employee.last_name AS LAST, role.title AS TITLE 
+        FROM employee
+        JOIN role ON employee.role_id = role.id;`,
         (err, res) => {
             if (err) throw err
             console.table(res)
@@ -104,12 +104,12 @@ viewAllRoles = () => {
 
 viewAllEmployees = () => {
     connection.query(
-        `SELECT * FROM employee;`,
-        // `SELECT employee.first_name AS FIRST,employee.last_name AS LAST, role.title AS TITLE, role.salary AS SALARY, department.name AS DEPARTMENT, CONCAT(e.first_name, " ", e.last_name) AS MANAGER 
-        // FROM employee 
-        // INNER JOIN role on role.id = employee.role_id 
-        // INNER JOIN department on department.id = role.department_id 
-        // LEFT JOIN employee e on employee.manager_id = e.id;`,
+        // `SELECT * FROM employee;`,
+        `SELECT employee.first_name AS FIRST,employee.last_name AS LAST, role.title AS TITLE, role.salary AS SALARY, department.name AS DEPARTMENT, CONCAT(e.first_name, " ", e.last_name) AS MANAGER 
+        FROM employee 
+        INNER JOIN role on role.id = employee.role_id 
+        INNER JOIN department on department.id = role.department_id 
+        LEFT JOIN employee e on employee.manager_id = e.id;`,
         (err, res) => {
             if (err) throw err
             console.table(res)
@@ -192,21 +192,10 @@ addRole = () => {
         ])
         .then(answer => {
             connection.query(
-                `INSERT INTO role (title, salary, department_id)
-                VALUE (?);`, 
-                {
-                    title: answer.roleTitle,
-                    salary: answer.roleSalary,
-                    department_id: answer.roleDep
-                },
+                `INSERT INTO role (title, salary, department_id) VALUE ('${answer.roleTitle}', ${answer.roleSalary}, ${answer.roleDep});`, 
                 (err, res) => {
                     if (err) throw err
                     console.table(res)
-                    console.log({
-                        title: answer.roleTitle,
-                        salary: answer.roleSalary,
-                        department_id: answer.roleDep
-                    });
                     startPrompt();
                 }
             )
@@ -328,12 +317,7 @@ updateRole = () => {
             ])
             .then(answer => {
                 connection.query(
-                    `UPDATE employee SET ?
-                    WHERE id IS ?;`,
-                    {
-                        last_name: answer.nameID,
-                        role_id: answer.roleID
-                    },
+                    `UPDATE employee SET role_id = ${answer.roleID} WHERE id = ${answer.nameID};`,
                     (err, res) => {
                         if (err) throw err
                         console.table(res)
