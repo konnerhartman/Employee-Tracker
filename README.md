@@ -19,6 +19,7 @@
   - [License](#license)
   - [Credits](#credits)
   - [Links](#links)
+  - [Screencapture](#screencapture)
   - [Tests](#tests)
   - [Questions](#questions)
   
@@ -44,8 +45,11 @@
 
   ## Links
   Repository: https://github.com/konnerhartman/Employee-Tracker<br/>
-  Demo Video: 
+  Demo Video: https://youtu.be/Tyaef5QoG08
   
+  ## Screencapture
+![Gif](./assets/Employee_Tracker_SQL.gif)
+
   ## Tests
   This app does not include any tests.
   
