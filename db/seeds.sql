@@ -1,3 +1,4 @@
+-- Autopopulates tables by INSERTing VALUES.
 INSERT INTO department (name)
 VALUES 
 ('Marketing'),
